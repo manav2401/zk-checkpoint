@@ -8,3 +8,9 @@ resolver = "2"
 [workspace.dependencies]
 sp1-zkvm = "2.0.0"
 sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", tag = "v2.0.0" }
+
+# alloy
+alloy-primitives = { version = "0.8.0", features = ["serde"] }
+
+serde_json = "1.0.94"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
