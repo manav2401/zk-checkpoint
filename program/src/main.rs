@@ -4,7 +4,7 @@ use zk_checkpoint_program::checkpoint::{prove, CheckpointProofCommit, Checkpoint
 sp1_zkvm::entrypoint!(main);
 
 pub fn main() {
-    let mut input = sp1_zkvm::io::read::<CheckpointProofInput>();
+    let input = sp1_zkvm::io::read::<CheckpointProofInput>();
     let commit = prove(input);
     sp1_zkvm::io::commit::<CheckpointProofCommit>(&commit);
 }
