@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "program",
+    "operator"
+]
+resolver = "2"
+
+[workspace.dependencies]
+sp1-zkvm = "2.0.0"
+sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", tag = "v2.0.0" }
