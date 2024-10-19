@@ -5,7 +5,10 @@ edition = "2021"
 
 [dependencies]
 sp1-zkvm.workspace = true
+
 alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+alloy-sol-macro.workspace = true
 
 serde_json.workspace = true
 serde.workspace = true

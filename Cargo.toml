@@ -2,7 +2,7 @@
 members = [
     "program",
     "operator"
-]
+, "lib"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -11,6 +11,14 @@ sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", tag = "v2.0.0" }
 
 # alloy
 alloy-primitives = { version = "0.8.0", features = ["serde"] }
+alloy-sol-types = { version = "0.8" }
+alloy-sol-macro = { version = "0.8" }
 
 serde_json = "1.0.94"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
+tokio = { version = "1.21", default-features = false, features = [
+    "rt",
+    "rt-multi-thread",
+] }
+reqwest = { version = "0.12.7", features = ["json"] }
+eyre = "0.6"
