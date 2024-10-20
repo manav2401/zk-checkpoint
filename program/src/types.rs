@@ -1,9 +1,6 @@
 use heimdall_types::CheckpointMsg;
 use prost::Message;
-use std::{
-    io::{Cursor, Read},
-    ops::Sub,
-};
+use std::{io::Cursor, ops::Sub};
 
 // Include the `types` module, which is generated from types.proto.
 pub mod heimdall_types {
@@ -64,20 +61,6 @@ pub fn bytes_to_checkpoint(buf: Vec<u8>) -> heimdall_types::CheckpointMsg {
     }
 }
 
-fn serialize_checkpoint_msg(m: &heimdall_types::CheckpointMsg) -> Vec<u8> {
-    let mut buf = Vec::with_capacity(m.encoded_len());
-
-    // Unwrap is safe, since we have reserved sufficient capacity in the vector.
-    m.encode_length_delimited(&mut buf).unwrap();
-    buf
-}
-
-fn deserialize_checkpoint_msg(
-    buf: &mut Vec<u8>,
-) -> Result<heimdall_types::CheckpointMsg, prost::DecodeError> {
-    heimdall_types::CheckpointMsg::decode_length_delimited(&mut Cursor::new(buf))
-}
-
 /// Serialize the checkpoint message
 pub fn serialize_checkpoint_tx(m: &heimdall_types::StdTx) -> Vec<u8> {
     let mut buf = Vec::with_capacity(m.encoded_len());
@@ -129,24 +112,12 @@ fn serialize_side_tx(m: &heimdall_types::SideTxWithData) -> Vec<u8> {
     buf
 }
 
-fn deserialize_side_tx(
-    buf: &mut Vec<u8>,
-) -> Result<heimdall_types::SideTxWithData, prost::DecodeError> {
-    heimdall_types::SideTxWithData::decode_length_delimited(&mut Cursor::new(buf))
-}
-
-fn checkpoint_from_bytes(data: &[u8]) -> heimdall_types::CheckpointMsg {
-    let mut decoded_tx_data = data.to_vec();
-    let decoded_message = deserialize_checkpoint_tx(&mut decoded_tx_data).unwrap();
-    decoded_message.msg.unwrap()
-}
-
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use alloy_primitives::{keccak256, Address};
+    use alloy_primitives::{hex, keccak256, Address};
     use base64::{prelude::BASE64_STANDARD, Engine};
     use reth_primitives::recover_signer_unchecked;
 
@@ -224,7 +195,7 @@ mod tests {
         result.extend_from_slice(data.as_slice());
         println!("result: {:?}", result);
         let message_hash = keccak256(result);
-        println!("message_hash: {:?}", message_hash.clone().bytes());
+        // println!("message_hash: {:?}", message_hash.clone().bytes());
 
         let recovered_signer = recover_signer_unchecked(&sig, &message_hash).unwrap_or_default();
         let expected = Address::from_str("392E41C8044B783aA9e305840645F2D2D7D51757").unwrap();
