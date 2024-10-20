@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 zk-checkpoint-lib = { path = "../lib" }
 sp1-zkvm.workspace = true
+sp1-sdk.workspace = true
 sp1-cc-client-executor.workspace = true
 
 alloy-primitives.workspace = true

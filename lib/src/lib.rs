@@ -11,6 +11,25 @@ sol! {
     }
 }
 
+sol! {
+    struct CommitStruct {
+        bytes32 l1_block_hash;
+        bytes32 bor_block_hash;
+        uint256 bor_block_number;
+    }
+}
+
+sol! {
+    contract PoSVerifier {
+        function verifyCheckpointSignatures(
+            bytes calldata _proofBytes,
+            bytes32 _l1BlockHash,
+            bytes32 _borBlockHash,
+            uint256 _borBlockNumber
+        ) public;
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckpointProofInput {
     pub tx_data: String,
