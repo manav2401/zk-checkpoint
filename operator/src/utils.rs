@@ -3,7 +3,7 @@ use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use reqwest::Client;
 use eyre::Result;
 
-use crate::types::{TxResponse, CheckpointResponse};
+use crate::types::{TxResponse, CheckpointResponse, BlockResponse};
 
 pub struct PoSClient {
     heimdall_url: String,
@@ -73,6 +73,20 @@ impl PoSClient {
             .send()
             .await?
             .json::<TxResponse>()
+            .await?;
+        Ok(response)
+    }
+
+    pub async fn fetch_block_by_number(&self, number: u64) -> Result<BlockResponse> {
+        let url = format!("{}/block?height={}", self.tendermint_url, number);
+        println!("Fetching heimdall block by number: {}", url);
+        let response = self
+            .http_client
+            .get(url)
+            .headers(self.headers.clone())
+            .send()
+            .await?
+            .json::<BlockResponse>()
             .await?;
         Ok(response)
     }

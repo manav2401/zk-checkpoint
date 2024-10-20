@@ -49,6 +49,7 @@ pub struct LastCommit {
 
 #[derive(Debug, Deserialize)]
 pub struct Precommit {
+    pub validator_address: String,
     pub side_tx_results: Option<Vec<SideTxResult>>,
 }
 
