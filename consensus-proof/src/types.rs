@@ -1,4 +1,3 @@
-use heimdall_types::CheckpointMsg;
 use prost::Message;
 use std::{io::Cursor, ops::Sub};
 
@@ -18,7 +17,7 @@ pub fn pad_to_32_bytes(input: &[u8]) -> [u8; 32] {
     output
 }
 
-pub fn checkpoint_to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
+pub fn checkpoint_to_bytes(checkpoint: &heimdall_types::CheckpointMsg) -> Vec<u8> {
     let mut result = Vec::new();
 
     // proposer
@@ -102,14 +101,6 @@ pub fn deserialize_checkpoint_tx(
     }
 
     heimdall_types::StdTx::decode_length_delimited(&mut Cursor::new(buf))
-}
-
-fn serialize_side_tx(m: &heimdall_types::SideTxWithData) -> Vec<u8> {
-    let mut buf = Vec::with_capacity(m.encoded_len());
-
-    // Unwrap is safe, since we have reserved sufficient capacity in the vector.
-    m.encode_length_delimited(&mut buf).unwrap();
-    buf
 }
 
 #[cfg(test)]

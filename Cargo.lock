@@ -1281,6 +1281,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "checkpoint-proof"
+version = "0.1.0"
+dependencies = [
+ "alloy-primitives 0.8.8",
+ "alloy-rlp",
+ "alloy-sol-types 0.8.8",
+ "base64 0.22.1",
+ "bincode",
+ "bytes",
+ "prost 0.13.3",
+ "prost-build",
+ "prost-types",
+ "reth-primitives",
+ "sha2",
+ "sp1-cc-client-executor",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6316,7 +6334,8 @@ dependencies = [
 [[package]]
 name = "sha2"
 version = "0.10.8"
-source = "git+https://github.com/sp1-patches/RustCrypto-hashes?branch=patch-sha2-v0.10.8#1f224388fdede7cef649bce0d63876d1a9e3f515"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "793db75ad2bcafc3ffa7c68b215fee268f537982cd901d132f89c6343f3a3dc8"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -6326,7 +6345,8 @@ dependencies = [
 [[package]]
 name = "sha3"
 version = "0.10.8"
-source = "git+https://github.com/sp1-patches/RustCrypto-hashes?branch=patch-sha3-v0.10.8#8f6d303c0861ba7e5adcc36207c0f41fe5edaabc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
 dependencies = [
  "digest 0.10.7",
  "keccak",
@@ -8464,23 +8484,10 @@ name = "zk-checkpoint-program"
 version = "0.1.0"
 dependencies = [
  "alloy-primitives 0.8.8",
- "alloy-sol-macro 0.8.8",
  "alloy-sol-types 0.8.8",
- "base64 0.22.1",
- "bincode",
- "bytes",
- "hex",
- "prost 0.13.3",
- "prost-build",
- "prost-types",
+ "checkpoint-proof",
  "reth-primitives",
- "serde",
- "serde_json",
- "sha2",
- "sp1-cc-client-executor",
- "sp1-sdk",
  "sp1-zkvm",
- "zk-checkpoint-lib",
 ]
 
 [[package]]
