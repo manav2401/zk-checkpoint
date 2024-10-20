@@ -21,7 +21,7 @@ pub fn pad_to_32_bytes(input: &[u8]) -> [u8; 32] {
     output
 }
 
-fn checkpoint_to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
+pub fn checkpoint_to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
     let mut result = Vec::new();
 
     // proposer
@@ -46,7 +46,7 @@ fn checkpoint_to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
     result
 }
 
-fn bytes_to_checkpoint(buf: Vec<u8>) -> heimdall_types::CheckpointMsg {
+pub fn bytes_to_checkpoint(buf: Vec<u8>) -> heimdall_types::CheckpointMsg {
     let proposer: [u8; 20] = buf[12..32].try_into().unwrap();
     let start_block: u64 = u64::from_be_bytes(buf[56..64].try_into().unwrap());
     let end_block: u64 = u64::from_be_bytes(buf[88..96].try_into().unwrap());

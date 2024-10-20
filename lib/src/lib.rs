@@ -15,7 +15,6 @@ sol! {
 pub struct CheckpointProofInput {
     pub tx_data: String,
     pub tx_hash: B256,
-    pub side_txs: Vec<Vec<u8>>,
     pub sigs: Vec<String>,
     pub signers: Vec<Address>,
     pub state_sketch_bytes: Vec<u8>,
