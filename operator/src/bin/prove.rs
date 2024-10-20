@@ -16,7 +16,12 @@ use alloy_primitives::FixedBytes;
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 
-pub const ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+use base64::{prelude::BASE64_STANDARD, Engine};
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::{BufReader, Write};
+
+pub const ELF: &[u8] = include_bytes!("../../../elf/checkpoint-proof");
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -42,20 +47,40 @@ async fn main() -> eyre::Result<()> {
     // Setup the logger.
     sp1_sdk::utils::setup_logger();
 
+    let args = Args::parse();
+
+    // Generate inputs
+    let prove = args.prove;
+
+    println!("Generating inputs...");
+    let input = generate_inputs(args).await?;
+    println!("Successfully generated inputs!");
+
+    // Write the struct to a file as JSON
+    // let file = File::create("inputs.json")?;
+    // serde_json::to_writer(file, &input)?;
+
+    // Read the struct from a JSON file
+    // let file = File::open("inputs.json")?;
+    // let reader = BufReader::new(file);
+    // let input: CheckpointProofInput = serde_json::from_reader(reader)?;
+
+    // Setup the inputs.
+    let mut stdin = SP1Stdin::new();
+    stdin.write(&input.tx_data);
+    stdin.write(&input.tx_hash);
+    stdin.write(&input.sigs);
+    stdin.write(&input.signers);
+    stdin.write(&input.state_sketch_bytes);
+    stdin.write(&input.root_chain_info_address);
+    stdin.write(&input.l1_block_hash);
+    stdin.write(&input.bor_block_hash);
+
     // Setup the prover client.
     let client = ProverClient::new();
 
     // Setup the program for proving.
     let (pk, vk) = client.setup(ELF);
-
-    // Generate inputs
-    let args = Args::parse();
-    let prove = args.prove;
-    let input = generate_inputs(args).await?;
-
-    // Setup the inputs.
-    let mut stdin = SP1Stdin::new();
-    stdin.write(&input);
 
     let (_, report) = client.execute(ELF, stdin.clone()).run().unwrap();
     println!(
@@ -72,13 +97,15 @@ async fn main() -> eyre::Result<()> {
             .expect("failed to generate proof");
         println!("Successfully generated proof!");
 
+        println!("Saving the proof...");
+        proof
+            .save("proof_mainnet.bin")
+            .expect("failed to save proof");
+        println!("Proof saved to proof.bin");
+
         println!("Verifying the proof locally...");
         client.verify(&proof, &vk).expect("failed to verify proof");
         println!("Successfully verified proof!");
-
-        println!("Saving the proof...");
-        proof.save("proof.bin").expect("failed to save proof");
-        println!("Proof saved to proof.bin");
     } else {
         println!("Skipping proving!")
     }
@@ -111,8 +138,9 @@ pub async fn generate_inputs(args: Args) -> eyre::Result<CheckpointProofInput> {
         if precommit.side_tx_results.is_some() {
             let side_tx = precommit.side_tx_results.as_ref().unwrap();
             for tx in side_tx.iter() {
+                let decoded_tx_hash = BASE64_STANDARD.decode(tx.tx_hash.as_bytes()).unwrap();
                 // Only add for requested checkpoint tx with success result
-                if tx.tx_hash == tx_hash_str && tx.result == 1 {
+                if decoded_tx_hash == tx_hash.to_vec() && tx.result == 1 {
                     sigs.push(tx.sig.clone().unwrap());
                     signers.push(Address::from_str(&precommit.validator_address).unwrap());
                 }

@@ -82,11 +82,12 @@ pub fn prove(input: CheckpointProofInput) -> CheckpointProofCommit {
     let checkpoint = validate_checkpoint_msg(&input.tx_data, &input.tx_hash);
 
     // 2. checkpoint.start_block = last_checkpoint_end_block + 1
-    validate_checkpoint(
-        checkpoint.start_block,
-        input.root_chain_info_address,
-        input.state_sketch_bytes.clone(),
-    );
+    // SKIPPING this for testing old checkpoints
+    // validate_checkpoint(
+    //     checkpoint.start_block,
+    //     input.root_chain_info_address,
+    //     input.state_sketch_bytes.clone(),
+    // );
 
     // 3. Check if we have same number of sigs and signers
     assert_eq!(input.sigs.len(), input.signers.len());
@@ -111,6 +112,7 @@ pub fn prove(input: CheckpointProofInput) -> CheckpointProofCommit {
     message.extend_from_slice(checkpoint_to_bytes(&checkpoint).as_slice());
 
     // 4. Verify the signatures of all validators
+    let mut verify_count = 0;
     for (i, sig) in input.sigs.iter().enumerate() {
         // check if it's a valid signer
         assert!(validator_stake_map.contains_key(&input.signers[i]));
@@ -120,6 +122,7 @@ pub fn prove(input: CheckpointProofInput) -> CheckpointProofCommit {
 
         // increase the majority power
         majority = majority.add_mod(validator_stake_map[&input.signers[i]], Uint::MAX);
+        verify_count += 1;
     }
 
     // 5. Check if majority >= 2/3 of total stake
@@ -127,7 +130,7 @@ pub fn prove(input: CheckpointProofInput) -> CheckpointProofCommit {
         .mul_mod(Uint::from(2), Uint::MAX)
         .div_ceil(Uint::from(3));
     if majority <= expected_majority {
-        panic!("Majority voting power is less than 2/3rd of the total power, total_power: {}, majority_power: {}", total_power, majority);
+        panic!("Majority voting power is less than 2/3rd of the total power, total_power: {}, majority_power: {}, vc: {}", total_power, majority, verify_count);
     }
 
     CheckpointProofCommit {

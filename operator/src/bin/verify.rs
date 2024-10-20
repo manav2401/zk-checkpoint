@@ -6,7 +6,7 @@ use sp1_sdk::{ProverClient, SP1ProofWithPublicValues};
 use zk_checkpoint_lib::{CommitStruct, PoSVerifier};
 use zk_checkpoint_operator::contract::ContractClient;
 
-pub const ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+pub const ELF: &[u8] = include_bytes!("../../../elf/checkpoint-proof");
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
@@ -21,6 +21,10 @@ async fn main() -> eyre::Result<()> {
     println!("Verifying proof locally...");
     client.verify(&proof, &vk).expect("failed to verify proof");
     println!("Successfully verified proof!");
+
+    println!("Verifying proof on-chain...");
+    verify_onchain(proof).await?;
+    println!("Successfully verified proof on-chain!");
 
     Ok(())
 }

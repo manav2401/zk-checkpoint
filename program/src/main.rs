@@ -29,7 +29,7 @@ pub fn main() {
     let bytes = CommitStruct::abi_encode_packed(&CommitStruct {
         l1_block_hash: commit.l1_block_hash,
         bor_block_hash: commit.bor_block_hash,
-        bor_block_number: Uint::from_be_bytes(commit.bor_block_number.to_be_bytes()),
+        bor_block_number: Uint::from(commit.bor_block_number),
     });
     sp1_zkvm::io::commit_slice(&bytes);
 }

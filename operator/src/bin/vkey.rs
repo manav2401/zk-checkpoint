@@ -1,6 +1,11 @@
-use sp1_sdk::{HashableKey, ProverClient};
+use std::str::FromStr;
 
-pub const ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+use alloy_primitives::{uint, FixedBytes, Uint};
+use alloy_sol_types::SolType;
+use sp1_sdk::{HashableKey, ProverClient};
+use zk_checkpoint_lib::{CheckpointProofCommit, CommitStruct};
+
+pub const ELF: &[u8] = include_bytes!("../../../elf/checkpoint-proof");
 
 fn main() {
     sp1_sdk::utils::setup_logger();
