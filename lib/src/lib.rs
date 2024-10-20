@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 pub const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 sol! {
-    contract Verifier {
+    contract RootChainInfo {
         function getLastCheckpointEndBlock() external view returns (uint256);
+        function getActiveValidatorInfo() public view returns(address[] memory, uint256[] memory, uint256);
     }
 }
 
@@ -19,7 +20,7 @@ pub struct CheckpointProofInput {
     pub signers: Vec<Address>,
     pub state_sketch_bytes: Vec<u8>,
     pub l1_block_hash: B256,
-    pub root_chain_address: Address,
+    pub root_chain_info_address: Address,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

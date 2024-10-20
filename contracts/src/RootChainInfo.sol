@@ -24,7 +24,7 @@ contract RootChainInfo {
         return RootChain(rootChain).getLastChildBlock();
     }
 
-    function getEncodedValidatorInfo() public view returns(address[] memory, uint256[] memory, uint256) {
+    function getActiveValidatorInfo() public view returns(address[] memory, uint256[] memory, uint256) {
         // Get the total number of validators stored by fetching the NFT count. The count is
         // assigned to the next validator and hence we subtract 1 from it.
         uint256 length = StakeManager(stakeManager).NFTCounter() - 1;
