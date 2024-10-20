@@ -21,8 +21,7 @@ pub fn pad_to_32_bytes(input: &[u8]) -> [u8; 32] {
     output
 }
 
-// Encoding function: converts MsgCheckpoint to bytes
-fn to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
+fn checkpoint_to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
     let mut result = Vec::new();
 
     // proposer
@@ -45,6 +44,24 @@ fn to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
     result.extend_from_slice(pad_to_32_bytes(&temp.to_be_bytes()).as_slice());
 
     result
+}
+
+fn bytes_to_checkpoint(buf: Vec<u8>) -> heimdall_types::CheckpointMsg {
+    let proposer: [u8; 20] = buf[12..32].try_into().unwrap();
+    let start_block: u64 = u64::from_be_bytes(buf[56..64].try_into().unwrap());
+    let end_block: u64 = u64::from_be_bytes(buf[88..96].try_into().unwrap());
+    let root_hash: [u8; 32] = buf[96..128].try_into().unwrap();
+    let account_root_hash: [u8; 32] = buf[128..160].try_into().unwrap();
+    let bor_chain_id_u64: u64 = u64::from_be_bytes(buf[184..192].try_into().unwrap());
+    let bor_chain_id: String = bor_chain_id_u64.to_string();
+    heimdall_types::CheckpointMsg {
+        proposer: proposer.to_vec(),
+        start_block,
+        end_block,
+        root_hash: root_hash.to_vec(),
+        account_root_hash: account_root_hash.to_vec(),
+        bor_chain_id,
+    }
 }
 
 fn serialize_checkpoint_msg(m: &heimdall_types::CheckpointMsg) -> Vec<u8> {
@@ -198,25 +215,21 @@ mod tests {
             .to_vec(),
             bor_chain_id: "80002".to_string(),
         };
-        // let side_tx = heimdall_types::SideTx {
-        //     tx_hash: hash_bytes,
-        //     result: 1,
-        // };
-        // let data = serialize_checkpoint_msg(&m);
-        let data = to_bytes(&m);
-        println!("data: {:?}", data);
-        // let side_tx_with_data = heimdall_types::SideTxWithData {
-        //     side_tx: Some(side_tx),
-        //     data,
-        // };
-        // let final_msg = serialize_side_tx(&side_tx_with_data);
-        // println!("final_msg: {:?}", final_msg);
 
-        // let message_hash = keccak256(&final_msg);
+        let data = checkpoint_to_bytes(&m);
+        let derived = bytes_to_checkpoint(data.clone());
+        assert_eq!(m, derived);
 
-        // let recovered_signer = recover_signer_unchecked(&sig, &message_hash).unwrap_or_default();
-        // let expected = Address::from_str("02F615E95563EF16F10354DBA9E584E58D2D4314").unwrap();
+        let mut result = vec![1];
+        result.extend_from_slice(data.as_slice());
+        println!("result: {:?}", result);
+        let message_hash = keccak256(result);
+        println!("message_hash: {:?}", message_hash.clone().bytes());
 
-        // assert_eq!(expected, recovered_signer);
+        let recovered_signer = recover_signer_unchecked(&sig, &message_hash).unwrap_or_default();
+        let expected = Address::from_str("392E41C8044B783aA9e305840645F2D2D7D51757").unwrap();
+        println!("expected: {:?}", expected);
+        println!("recovered_signer: {:?}", recovered_signer);
+        assert_eq!(expected, recovered_signer);
     }
 }
