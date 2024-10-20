@@ -1,4 +1,3 @@
-use alloy_rpc_types::BlockId;
 use clap::Parser;
 use sp1_sdk::{ProverClient, SP1Stdin};
 use zk_checkpoint_lib::CheckpointProofInput;
