@@ -16,3 +16,13 @@ message StdTx {
     bytes signature = 2;
     string memo = 3;
 }
+
+message SideTxWithData {
+    SideTx side_tx = 1;
+    bytes data = 2;
+}
+
+message SideTx {
+    bytes tx_hash = 1;
+    int32 result = 2;
+}

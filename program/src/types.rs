@@ -1,13 +1,68 @@
+use heimdall_types::CheckpointMsg;
 use prost::Message;
-use std::{io::Cursor, ops::Sub};
+use std::{
+    io::{Cursor, Read},
+    ops::Sub,
+};
 
 // Include the `types` module, which is generated from types.proto.
 pub mod heimdall_types {
     include!(concat!(env!("OUT_DIR"), "/types.rs"));
 }
 
+// Function to pad bytes to 32 bytes as in Go's convertTo32
+pub fn pad_to_32_bytes(input: &[u8]) -> [u8; 32] {
+    let mut output = [0u8; 32];
+    let input_len = input.len();
+
+    // Copy the input bytes to the end of the 32-byte array, padding with leading zeros
+    output[32 - input_len..].copy_from_slice(input);
+
+    output
+}
+
+// Encoding function: converts MsgCheckpoint to bytes
+fn to_bytes(checkpoint: &CheckpointMsg) -> Vec<u8> {
+    let mut result = Vec::new();
+
+    // proposer
+    result.extend_from_slice(pad_to_32_bytes(&checkpoint.proposer).as_slice());
+
+    // start_block
+    result.extend_from_slice(pad_to_32_bytes(&checkpoint.start_block.to_be_bytes()).as_slice());
+
+    // end_block
+    result.extend_from_slice(pad_to_32_bytes(&checkpoint.end_block.to_be_bytes()).as_slice());
+
+    // root_hash
+    result.extend_from_slice(pad_to_32_bytes(&checkpoint.root_hash).as_slice());
+
+    // account_root_hash
+    result.extend_from_slice(pad_to_32_bytes(&checkpoint.account_root_hash).as_slice());
+
+    // bor_chain_id
+    let temp: u64 = checkpoint.bor_chain_id.parse().unwrap();
+    result.extend_from_slice(pad_to_32_bytes(&temp.to_be_bytes()).as_slice());
+
+    result
+}
+
+fn serialize_checkpoint_msg(m: &heimdall_types::CheckpointMsg) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(m.encoded_len());
+
+    // Unwrap is safe, since we have reserved sufficient capacity in the vector.
+    m.encode_length_delimited(&mut buf).unwrap();
+    buf
+}
+
+fn deserialize_checkpoint_msg(
+    buf: &mut Vec<u8>,
+) -> Result<heimdall_types::CheckpointMsg, prost::DecodeError> {
+    heimdall_types::CheckpointMsg::decode_length_delimited(&mut Cursor::new(buf))
+}
+
 /// Serialize the checkpoint message
-pub fn serialize_checkpoint_msg(m: &heimdall_types::StdTx) -> Vec<u8> {
+pub fn serialize_checkpoint_tx(m: &heimdall_types::StdTx) -> Vec<u8> {
     let mut buf = Vec::with_capacity(m.encoded_len());
 
     // Unwrap is safe, since we have reserved sufficient capacity in the vector.
@@ -16,7 +71,7 @@ pub fn serialize_checkpoint_msg(m: &heimdall_types::StdTx) -> Vec<u8> {
 }
 
 /// Deserialize the checkpoint message to extract checkpoint info
-pub fn deserialize_checkpoint_msg(
+pub fn deserialize_checkpoint_tx(
     buf: &mut Vec<u8>,
 ) -> Result<heimdall_types::StdTx, prost::DecodeError> {
     // Hack for handling interface
@@ -49,16 +104,40 @@ pub fn deserialize_checkpoint_msg(
     heimdall_types::StdTx::decode_length_delimited(&mut Cursor::new(buf))
 }
 
+fn serialize_side_tx(m: &heimdall_types::SideTxWithData) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(m.encoded_len());
+
+    // Unwrap is safe, since we have reserved sufficient capacity in the vector.
+    m.encode_length_delimited(&mut buf).unwrap();
+    buf
+}
+
+fn deserialize_side_tx(
+    buf: &mut Vec<u8>,
+) -> Result<heimdall_types::SideTxWithData, prost::DecodeError> {
+    heimdall_types::SideTxWithData::decode_length_delimited(&mut Cursor::new(buf))
+}
+
+fn checkpoint_from_bytes(data: &[u8]) -> heimdall_types::CheckpointMsg {
+    let mut decoded_tx_data = data.to_vec();
+    let decoded_message = deserialize_checkpoint_tx(&mut decoded_tx_data).unwrap();
+    decoded_message.msg.unwrap()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use base64::{prelude::BASE64_STANDARD, Engine};
+    use std::str::FromStr;
 
-    #[test]
+    use super::*;
+    use alloy_primitives::{keccak256, Address};
+    use base64::{prelude::BASE64_STANDARD, Engine};
+    use reth_primitives::recover_signer_unchecked;
+
+    // #[test]
     fn test_deserialize_checkpoint_msg() {
         let a = "uAHwYl3uCm/XqKSpChRtwt1U8kl57CYhJ5THGv7+1yIoDBDz7LAGGPLwsAYiIG13yje6CCcTwisX8k0naX249I92JIpsCbcU/f5Pnp+xKiBLa5lLmdJONehiavQZoIfseEmNl2Jl5YedfCK5JBw7mDIFODAwMDISQX5H4v7pEORvrXwVu2+pyUKQJXkvyP8pVb5a7V3KDStwW6AwgsQnh/MKlPe+y/YEKxbVH8J6XqILlTOmiQhnSi8A".to_string();
         let mut decoded_tx_data = BASE64_STANDARD.decode(a).expect("tx_data decoding failed");
-        let decoded_message = deserialize_checkpoint_msg(&mut decoded_tx_data).unwrap();
+        let decoded_message = deserialize_checkpoint_tx(&mut decoded_tx_data).unwrap();
         println!("decoded_tx_data: {:?}", decoded_tx_data);
 
         let m = heimdall_types::CheckpointMsg {
@@ -86,5 +165,58 @@ mod tests {
         };
 
         assert_eq!(decoded_message, msg);
+    }
+
+    #[test]
+    fn test_sidetx() {
+        let signature = "FC1Sp9LFVzWEDv9Q9oRs7sDUJZLKGmG9KVQwJ4VxreZzZUG7lTmNlKqISt5Pso/G8WZJzYUWHFzjJkj2uJwjTAE=".to_string();
+        let decoded_signature = BASE64_STANDARD
+            .decode(signature)
+            .expect("unable to decode signature");
+
+        let mut sig = [0u8; 65];
+        sig.copy_from_slice(decoded_signature.as_slice());
+
+        let hash = "Gjn/w2EdD2nl9bC91e5Jj3upa77GamV7OUOCXeRwA14=".to_string();
+        let hash_bytes = BASE64_STANDARD.decode(hash).expect("unable to decode hash");
+
+        let m = heimdall_types::CheckpointMsg {
+            proposer: hex::decode("6dc2dd54f24979ec26212794c71afefed722280c")
+                .unwrap()
+                .to_vec(),
+            start_block: 13383283,
+            end_block: 13383794,
+            root_hash: hex::decode(
+                "6d77ca37ba082713c22b17f24d27697db8f48f76248a6c09b714fdfe4f9e9fb1",
+            )
+            .unwrap()
+            .to_vec(),
+            account_root_hash: hex::decode(
+                "4b6b994b99d24e35e8626af419a087ec78498d976265e5879d7c22b9241c3b98",
+            )
+            .unwrap()
+            .to_vec(),
+            bor_chain_id: "80002".to_string(),
+        };
+        // let side_tx = heimdall_types::SideTx {
+        //     tx_hash: hash_bytes,
+        //     result: 1,
+        // };
+        // let data = serialize_checkpoint_msg(&m);
+        let data = to_bytes(&m);
+        println!("data: {:?}", data);
+        // let side_tx_with_data = heimdall_types::SideTxWithData {
+        //     side_tx: Some(side_tx),
+        //     data,
+        // };
+        // let final_msg = serialize_side_tx(&side_tx_with_data);
+        // println!("final_msg: {:?}", final_msg);
+
+        // let message_hash = keccak256(&final_msg);
+
+        // let recovered_signer = recover_signer_unchecked(&sig, &message_hash).unwrap_or_default();
+        // let expected = Address::from_str("02F615E95563EF16F10354DBA9E584E58D2D4314").unwrap();
+
+        // assert_eq!(expected, recovered_signer);
     }
 }

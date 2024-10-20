@@ -109,7 +109,7 @@ pub fn validate_checkpoint_msg(
 
     assert_eq!(*expected_hash, tx_hash);
 
-    let checkpoint_msg = deserialize_checkpoint_msg(&mut decoded_tx_data)
+    let checkpoint_msg = deserialize_checkpoint_tx(&mut decoded_tx_data)
         .expect("failed to deserialize checkpoint tx data");
 
     checkpoint_msg.msg.unwrap()
