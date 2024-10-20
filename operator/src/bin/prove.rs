@@ -36,7 +36,8 @@ pub struct Args {
     prove: bool,
 }
 
-fn main() -> eyre::Result<()> {
+#[tokio::main]
+async fn main() -> eyre::Result<()> {
     dotenv::dotenv().ok();
 
     // Setup the logger.
@@ -48,20 +49,42 @@ fn main() -> eyre::Result<()> {
     // Setup the program for proving.
     let (pk, vk) = client.setup(ELF);
 
+    // Generate inputs
+    let args = Args::parse();
+    let prove = args.prove;
+    let input = generate_inputs(args).await?;
+
     // Setup the inputs.
     let mut stdin = SP1Stdin::new();
-    stdin.write(&5);
+    stdin.write(&input);
 
-    // Generate the proof.
-    let proof = client
-        .prove(&pk, stdin)
-        .run()
-        .expect("failed to generate proof");
-    println!("Successfully generated proof!");
+    let (_, report) = client.execute(ELF, stdin.clone()).run().unwrap();
+    println!(
+        "executed program with {} cycles",
+        report.total_instruction_count()
+    );
 
-    // Verify the proof.
-    client.verify(&proof, &vk).expect("failed to verify proof");
-    println!("Successfully verified proof!");
+    if prove {
+        println!("Generating a plonk proof...");
+        let proof = client
+            .prove(&pk, stdin)
+            .plonk()
+            .run()
+            .expect("failed to generate proof");
+        println!("Successfully generated proof!");
+
+        println!("Verifying the proof locally...");
+        client.verify(&proof, &vk).expect("failed to verify proof");
+        println!("Successfully verified proof!");
+
+        println!("Saving the proof...");
+        proof.save("proof.bin").expect("failed to save proof");
+        println!("Proof saved to proof.bin");
+    } else {
+        println!("Skipping proving!")
+    }
+
+    println!("Done!");
 
     Ok(())
 }
