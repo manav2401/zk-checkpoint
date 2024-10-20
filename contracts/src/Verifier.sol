@@ -1,18 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface RootChain {
-    function getLastChildBlock() external view returns (uint256);
-}
-
 contract Verifier {
-    address public rootChain;
+    // SP1 related
+    address public verifier;
+    bytes32 public consensusProofVKey;
 
-    constructor(address _rootChain) {
-        rootChain = _rootChain;
+    // Last verified bor block details
+    uint256 public lastVerifiedBorBlockNumber;
+    bytes32 public lastVerifiedBorBlockHash;
+
+    constructor(address _verifier, bytes32 _consensusProofVKey) {
+        verifier = _verifier;
+        consensusProofVKey = _consensusProofVKey;
     }
 
-    function getLastCheckpointEndBlock() external view returns (uint256) {
-        return RootChain(rootChain).getLastChildBlock();
+    function verifyCheckpointSignatures(
+        bytes calldata _proofBytes,
+        bytes32 _l1BlockHash,
+        bytes32 _borBlockNumber,
+        bytes32 _borBlockHash
+    ) public view  {
+        // Call verifier..
     }
+
 }
