@@ -66,7 +66,9 @@ pub fn prove(input: CheckpointProofInput) -> CheckpointProofCommit {
     }
 
     CheckpointProofCommit {
+        bor_block_hash: input.bor_block_hash,
         l1_block_hash: input.l1_block_hash,
+        bor_block_number: checkpoint.end_block,
     }
 }
 

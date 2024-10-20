@@ -18,13 +18,16 @@ pub struct CheckpointProofInput {
     pub sigs: Vec<String>,
     pub signers: Vec<Address>,
     pub state_sketch_bytes: Vec<u8>,
-    pub l1_block_hash: B256,
     pub root_chain_info_address: Address,
+    pub l1_block_hash: B256,
+    pub bor_block_hash: B256,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckpointProofCommit {
     pub l1_block_hash: B256,
+    pub bor_block_hash: B256,
+    pub bor_block_number: u64,
 }
 
 #[derive(Debug, Deserialize)]
