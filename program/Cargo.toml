@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 zk-checkpoint-lib = { path = "../lib" }
 sp1-zkvm.workspace = true
+sp1-cc-client-executor.workspace = true
 
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
@@ -20,6 +21,8 @@ prost-types.workspace = true
 hex.workspace = true
 base64.workspace = true
 bytes.workspace = true
+bincode.workspace = true
+sha2.workspace = true
 
 [build-dependencies]
 prost-build = "0.13.1"

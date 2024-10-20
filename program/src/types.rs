@@ -53,6 +53,7 @@ pub fn deserialize_checkpoint_msg(
 mod tests {
     use super::*;
     use base64::{prelude::BASE64_STANDARD, Engine};
+    use zk_checkpoint_lib::Verifier;
     // use reth_primitives::hex;
     // use std::str::FromStr;
 

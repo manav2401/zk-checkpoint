@@ -1,6 +1,8 @@
+use alloy_primitives::{address, Address, B256};
 use alloy_sol_types::sol;
-use alloy_primitives::{Address, B256};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+
+pub const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 sol! {
     contract Verifier {
@@ -8,15 +10,16 @@ sol! {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckpointProofInput {
     pub tx_data: String,
-    pub tx_hash: String,
+    pub tx_hash: B256,
+    pub side_txs: Vec<Vec<u8>>,
     pub sigs: Vec<String>,
     pub signers: Vec<Address>,
     pub state_sketch_bytes: Vec<u8>,
     pub l1_block_hash: B256,
+    pub root_chain_address: Address,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
