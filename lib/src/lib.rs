@@ -21,7 +21,7 @@ pub struct CheckpointProofInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckpointProofCommit {
-    l1_block_hash: B256,
+    pub l1_block_hash: B256,
 }
 
 #[derive(Debug, Deserialize)]

@@ -15,6 +15,14 @@ alloy-primitives = { version = "0.8.0", features = ["serde"] }
 alloy-sol-types = { version = "0.8" }
 alloy-sol-macro = { version = "0.8" }
 
+# reth
+reth-primitives = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+    "alloy-compat",
+    "optimism",
+    "std",
+    "secp256k1"
+] }
+
 serde_json = "1.0.94"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 tokio = { version = "1.21", default-features = false, features = [
@@ -25,3 +33,8 @@ reqwest = { version = "0.12.7", features = ["json"] }
 eyre = "0.6"
 clap = { version = "4.5.7", features = ["derive", "env"] }
 dotenv = "0.15.0"
+prost = "0.13.1"
+prost-types = "0.13.1"
+hex = "0.4.3"
+base64 = "0.22.1"
+bytes = "1.7.1"

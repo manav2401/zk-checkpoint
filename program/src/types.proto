@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package types;
+
+message CheckpointMsg {
+    bytes proposer = 1;
+    uint64 start_block = 2;
+    uint64 end_block = 3;
+    bytes root_hash = 4;
+    bytes account_root_hash = 5;
+    string bor_chain_id = 6;
+}
+
+message StdTx {
+    CheckpointMsg msg = 1;
+    bytes signature = 2;
+    string memo = 3;
+}
