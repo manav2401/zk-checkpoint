@@ -27,6 +27,7 @@ ethers.workspace = true
 alloy-primitives.workspace = true
 alloy-rpc-types.workspace = true
 alloy-provider.workspace = true
+alloy-sol-types.workspace = true
 
 [build-dependencies]
 sp1-helper = { git = "https://github.com/succinctlabs/sp1.git", tag = "v2.0.0" }

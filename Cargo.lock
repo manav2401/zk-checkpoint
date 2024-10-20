@@ -8442,6 +8442,7 @@ dependencies = [
  "alloy-primitives 0.8.8",
  "alloy-provider",
  "alloy-rpc-types",
+ "alloy-sol-types 0.8.8",
  "bincode",
  "clap",
  "dotenv",

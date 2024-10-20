@@ -3,7 +3,7 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::Uint;
 use alloy_sol_types::SolValue;
-use zk_checkpoint_lib::{CheckpointProofCommit, CheckpointProofInput, CommitStruct};
+use zk_checkpoint_lib::{CheckpointProofInput, CommitStruct};
 use zk_checkpoint_program::checkpoint::prove;
 
 pub fn main() {
